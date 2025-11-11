@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.env
+.venv/
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# Supabase (safety)
+supabase/.temp/
+supabase/config.toml
+
+# System files
+.DS_Store
+Thumbs.db
