@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Dashboard - WAVELINK</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+        }
+        
+        .dashboard {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, #088395, #05bfdb);
+            color: white;
+            padding: 30px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 0 30px 30px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .sidebar-header h2 {
+            font-size: 24px;
+        }
+        
+        .sidebar-header p {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .nav-menu {
+            padding: 20px 0;
+        }
+        
+        .nav-item {
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(255,255,255,0.1);
+            border-left: 4px solid #ffeb3b;
+        }
+        
+        .nav-item span {
+            font-size: 20px;
+        }
+        
+        .logout-btn {
+            margin: 20px 30px;
+            padding: 12px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 30px;
+        }
+        
+        .top-bar {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .top-bar h1 {
+            color: #088395;
+        }
+        
+        .category-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #088395, #05bfdb);
+            color: white;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .content-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-header h2 {
+            color: #088395;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #088395, #05bfdb);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(8, 131, 149, 0.3);
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .action-card {
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(8, 131, 149, 0.05), rgba(5, 191, 219, 0.05));
+            border: 2px solid rgba(8, 131, 149, 0.1);
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-3px);
+            border-color: #088395;
+        }
+        
+        .action-card .icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        
+        .action-card h3 {
+            color: #088395;
+            font-size: 16px;
+        }
+        
+        .task-list {
+            list-style: none;
+        }
+        
+        .task-item {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .task-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .task-date {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .task-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🌊 WAVELINK</h2>
+                <p>Employee Portal</p>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="{{ url_for('employee_dashboard') }}" class="nav-item active">
+                    <span>📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span>📝</span>
+                    <span>Report Incident</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span>🔧</span>
+                    <span>Maintenance Log</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span>📄</span>
+                    <span>My Certificates</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span>📋</span>
+                    <span>Tasks</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span>🚨</span>
+                    <span>Emergency Alert</span>
+                </a>
+                <a href="{{ url_for('profile') }}" class="nav-item">
+                    <span>👤</span>
+                    <span>Profile</span>
+                </a>
+            </nav>
+            
+            <div class="logout-btn" onclick="window.location.href='{{ url_for('logout') }}'">
+                🚪 Logout
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <div class="top-bar">
+                <h1>Welcome, {{ session.full_name }}!</h1>
+                <div class="category-badge">
+                    {% if category == 'technical' %}
+                        🔧 Technical Staff
+                    {% elif category == 'non_technical' %}
+                        📋 Non-Technical Staff
+                    {% elif category == 'finance' %}
+                        💰 Finance Staff
+                    {% elif category == 'boat_driver' %}
+                        ⛴️ Boat Driver/Crew
+                    {% else %}
+                        👷 General Employee
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="content-section">
+                <div class="section-header">
+                    <h2>Quick Actions</h2>
+                </div>
+                
+                <div class="quick-actions">
+                    <div class="action-card">
+                        <div class="icon">📝</div>
+                        <h3>Report Incident</h3>
+                    </div>
+                    
+                    <div class="action-card">
+                        <div class="icon">🔧</div>
+                        <h3>Log Maintenance</h3>
+                    </div>
+                    
+                    <div class="action-card">
+                        <div class="icon">📄</div>
+                        <h3>Upload Certificate</h3>
+                    </div>
+                    
+                    <div class="action-card">
+                        <div class="icon">🚨</div>
+                        <h3>Trigger Emergency</h3>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content-section">
+                <div class="section-header">
+                    <h2>My Tasks</h2>
+                    <button class="btn">View All</button>
+                </div>
+                
+                <ul class="task-list">
+                    <li class="task-item">
+                        <div>
+                            <div class="task-title">Complete safety inspection</div>
+                            <div class="task-date">Due: Today</div>
+                        </div>
+                        <span class="task-status status-pending">Pending</span>
+                    </li>
+                    
+                    <li class="task-item">
+                        <div>
+                            <div class="task-title">Submit monthly report</div>
+                            <div class="task-date">Due: Tomorrow</div>
+                        </div>
+                        <span class="task-status status-pending">Pending</span>
+                    </li>
+                    
+                    <li class="task-item">
+                        <div>
+                            <div class="task-title">Equipment maintenance check</div>
+                            <div class="task-date">Completed: Yesterday</div>
+                        </div>
+                        <span class="task-status status-completed">Completed</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="content-section">
+                <div class="section-header">
+                    <h2>Recent Reports</h2>
+                </div>
+                <p style="color: #666; text-align: center; padding: 40px;">No recent reports to display</p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

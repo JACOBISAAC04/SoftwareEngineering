@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passenger Dashboard - WAVELINK</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a4d68 0%, #088395 50%, #05bfdb 100%);
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            color: white;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .user-name {
+            font-weight: 600;
+        }
+        
+        .btn-logout {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        .hero-section {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        
+        .hero-section h1 {
+            color: #0a4d68;
+            font-size: 42px;
+            margin-bottom: 15px;
+        }
+        
+        .hero-section p {
+            color: #666;
+            font-size: 18px;
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .card-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .card h2 {
+            color: #0a4d68;
+            margin-bottom: 15px;
+        }
+        
+        .card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .btn-primary {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #0a4d68, #088395);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(8, 131, 149, 0.3);
+        }
+        
+        .map-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 40px;
+        }
+        
+        .map-placeholder {
+            background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+            height: 400px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #0a4d68;
+        }
+        
+        .alerts-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .alert-item {
+            padding: 20px;
+            background: #f8f9fa;
+            border-left: 4px solid #088395;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .alert-item h3 {
+            color: #0a4d68;
+            margin-bottom: 10px;
+        }
+        
+        .alert-time {
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">🌊 WAVELINK</div>
+        <div class="user-menu">
+            <span class="user-name">👤 {{ session.full_name }}</span>
+            <button class="btn-logout" onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="hero-section">
+            <h1>Welcome Aboard!</h1>
+            <p>Your portal for safe and seamless water metro travel</p>
+        </div>
+        
+        <div class="content-grid">
+            <div class="card">
+                <div class="card-icon">🗺️</div>
+                <h2>Live Ship Tracking</h2>
+                <p>Track your vessel in real-time and get accurate arrival estimates</p>
+                <button class="btn-primary">View Map</button>
+            </div>
+            
+            <div class="card">
+                <div class="card-icon">📅</div>
+                <h2>Schedules & Routes</h2>
+                <p>Check departure times, routes, and terminal information</p>
+                <button class="btn-primary">View Schedule</button>
+            </div>
+            
+            <div class="card">
+                <div class="card-icon">🎫</div>
+                <h2>Book Tickets</h2>
+                <p>Quick and easy ticket booking for your journey</p>
+                <button class="btn-primary">Book Now</button>
+            </div>
+            
+            <div class="card">
+                <div class="card-icon">💬</div>
+                <h2>Feedback</h2>
+                <p>Share your experience and help us improve our services</p>
+                <button class="btn-primary">Give Feedback</button>
+            </div>
+            
+            <div class="card">
+                <div class="card-icon">🏢</div>
+                <h2>Terminal Info</h2>
+                <p>Explore facilities, amenities, and services at each terminal</p>
+                <button class="btn-primary">View Terminals</button>
+            </div>
+            
+            <div class="card">
+                <div class="card-icon">🔔</div>
+                <h2>Safety Guidelines</h2>
+                <p>Important safety information for passengers</p>
+                <button class="btn-primary">Read More</button>
+            </div>
+        </div>
+        
+        <div class="map-container">
+            <h2 style="color: #0a4d68; margin-bottom: 20px;">🗺️ Live Ship Locations</h2>
+            <div class="map-placeholder">
+                🚢 Interactive Map Coming Soon
+            </div>
+        </div>
+        
+        <div class="alerts-section">
+            <h2 style="color: #0a4d68; margin-bottom: 20px;">🔔 Latest Updates</h2>
+            
+            <div class="alert-item">
+                <h3>All Systems Operational</h3>
+                <p>All terminals are operating normally. Have a safe journey!</p>
+                <div class="alert-time">2 hours ago</div>
+            </div>
+            
+            <div class="alert-item">
+                <h3>Weather Advisory</h3>
+                <p>Clear weather conditions expected for the next 24 hours.</p>
+                <div class="alert-time">5 hours ago</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - WAVELINK</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a4d68 0%, #088395 50%, #05bfdb 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .profile-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .profile-header {
+            background: linear-gradient(135deg, #0a4d68, #088395);
+            color: white;
+            padding: 50px;
+            text-align: center;
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            margin: 0 auto 20px;
+            border: 4px solid white;
+        }
+        
+        .profile-header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .role-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .profile-content {
+            padding: 40px 50px;
+        }
+        
+        .info-section {
+            margin-bottom: 40px;
+        }
+        
+        .info-section h2 {
+            color: #0a4d68;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+        }
+        
+        .info-item {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .info-value {
+            font-size: 18px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #0a4d68, #088395);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .back-link {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .back-link a {
+            color: #088395;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <div class="profile-header">
+            <div class="profile-avatar">
+                {{ user.full_name[0].upper() }}
+            </div>
+            <h1>{{ user.full_name }}</h1>
+            <span class="role-badge">
+                {% if user.role == 'admin' %}
+                    🧑‍💼 Administrator
+                {% elif user.role == 'employee' %}
+                    👷 Employee
+                {% elif user.role == 'passenger' %}
+                    🧍 Passenger
+                {% endif %}
+            </span>
+        </div>
+        
+        <div class="profile-content">
+            <div class="info-section">
+                <h2>📋 Personal Information</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Full Name</div>
+                        <div class="info-value">{{ user.full_name }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">Email Address</div>
+                        <div class="info-value">{{ user.email }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">Phone Number</div>
+                        <div class="info-value">{{ user.phone or 'Not provided' }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">Account Status</div>
+                        <div class="info-value">
+                            {% if user.is_active %}
+                                ✅ Active
+                            {% else %}
+                                ❌ Inactive
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if user.role == 'employee' and user.employee_category %}
+            <div class="info-section">
+                <h2>💼 Employment Details</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Employee Category</div>
+                        <div class="info-value">
+                            {% if user.employee_category == 'technical' %}
+                                🔧 Technical Staff
+                            {% elif user.employee_category == 'non_technical' %}
+                                📋 Non-Technical Staff
+                            {% elif user.employee_category == 'finance' %}
+                                💰 Finance Staff
+                            {% elif user.employee_category == 'boat_driver' %}
+                                ⛴️ Boat Driver/Crew
+                            {% else %}
+                                {{ user.employee_category }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">Member Since</div>
+                        <div class="info-value">{{ user.created_at[:10] }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="info-section">
+                <h2>⚙️ Account Actions</h2>
+                <div class="btn-group">
+                    <button class="btn btn-primary">Edit Profile</button>
+                    <button class="btn btn-secondary">Change Password</button>
+                    <button class="btn btn-secondary">Download Data</button>
+                </div>
+            </div>
+            
+            <div class="back-link">
+                {% if user.role == 'admin' %}
+                    <a href="{{ url_for('admin_dashboard') }}">← Back to Dashboard</a>
+                {% elif user.role == 'employee' %}
+                    <a href="{{ url_for('employee_dashboard') }}">← Back to Dashboard</a>
+                {% elif user.role == 'passenger' %}
+                    <a href="{{ url_for('passenger_dashboard') }}">← Back to Dashboard</a>
+                {% else %}
+                    <a href="{{ url_for('index') }}">← Back to Home</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
