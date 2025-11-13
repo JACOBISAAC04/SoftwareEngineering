@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Give Feedback - WAVELINK</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #0a4d68 0%, #088395 50%, #05bfdb 100%); min-height: 100vh; }
+        .navbar { background: rgba(0, 0, 0, 0.3); padding: 20px 50px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(10px); color: white; }
+        .logo { font-size: 24px; font-weight: bold; }
+        .user-menu { display: flex; align-items: center; gap: 20px; }
+        .user-name { font-weight: 600; }
+        .btn-logout { padding: 10px 20px; background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); color: white; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .btn-logout:hover { background: rgba(255, 255, 255, 0.3); }
+        .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        .page-header { background: white; border-radius: 20px; padding: 40px; text-align: center; margin-bottom: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .page-header h1 { color: #0a4d68; font-size: 42px; }
+        .content-box { background: white; border-radius: 15px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        .form-group input, .form-group textarea, .form-group input[type="file"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Segoe UI', sans-serif; font-size: 16px; }
+        .form-group textarea { min-height: 150px; resize: vertical; }
+        .form-group input[type="file"] { padding: 10px; }
+        .btn-primary { padding: 12px 25px; background: linear-gradient(135deg, #0a4d68, #088395); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; width: 100%; font-size: 16px; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(8, 131, 149, 0.3); }
+        .flash { padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+        .flash.error { background: #f8d7da; color: #721c24; }
+        .flash.success { background: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">🌊 WAVELINK</div>
+        <div class="user-menu">
+            <span class="user-name">👤 {{ session.full_name }}</span>
+            <button class="btn-logout" onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="page-header">
+            <h1>💬 Give Feedback</h1>
+        </div>
+        
+        <div class="content-box">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            <form method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="subject">Subject (Optional)</label>
+                    <input type="text" id="subject" name="subject" placeholder="e.g., Cleanliness of the boat">
+                </div>
+                <div class="form-group">
+                    <label for="message">Message (Required)</label>
+                    <textarea id="message" name="message" placeholder="Share your experience..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="attachments">Attach Files (Optional)</label>
+                    <p style="font-size: 12px; color: #666; margin-bottom: 10px;">You can upload multiple photos, videos, or PDFs.</p>
+                    <input type="file" id="attachments" name="attachments" multiple>
+                </div>
+                <button type="submit" class="btn-primary">Submit Feedback</button>
+            </form>
+            <a href="{{ url_for('passenger_dashboard') }}" style="display: block; text-align: center; margin-top: 20px; color: #088395; text-decoration: none; font-weight: 600;">&larr; Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>

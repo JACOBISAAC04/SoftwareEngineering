@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Feedback History - WAVELINK</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #0a4d68 0%, #088395 50%, #05bfdb 100%); min-height: 100vh; }
+        .navbar { background: rgba(0, 0, 0, 0.3); padding: 20px 50px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(10px); color: white; }
+        .logo { font-size: 24px; font-weight: bold; }
+        .user-menu { display: flex; align-items: center; gap: 20px; }
+        .user-name { font-weight: 600; }
+        .btn-logout { padding: 10px 20px; background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); color: white; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .btn-logout:hover { background: rgba(255, 255, 255, 0.3); }
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .page-header { background: white; border-radius: 20px; padding: 40px; text-align: center; margin-bottom: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .page-header h1 { color: #0a4d68; font-size: 42px; }
+        .content-box { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        
+        /* --- STYLES for list and flash messages --- */
+        .feedback-list { list-style: none; padding: 0; }
+        .feedback-item { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 15px; }
+        .feedback-item h3 { color: #0a4d68; margin-bottom: 5px; }
+        .feedback-item p { color: #333; line-height: 1.6; }
+        .feedback-item .date { font-size: 12px; color: #666; margin-top: 10px; }
+        
+        .flash { padding: 10px; border-radius: 8px; margin-bottom: 20px; }
+        .flash.error { background: #f8d7da; color: #721c24; }
+        .flash.success { background: #d4edda; color: #155724; }
+
+        /* --- NEW: Attachment Styles --- */
+        .attachments-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .attachment-item {
+            flex-basis: 120px;
+            text-decoration: none;
+            color: #333;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .attachment-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        .attachment-item img, .attachment-item video {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            display: block;
+        }
+        .attachment-file {
+            width: 100%;
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f0f0f0;
+            padding: 10px;
+            text-align: center;
+        }
+        .attachment-file-icon {
+            font-size: 32px;
+            color: #0a4d68;
+        }
+        .attachment-file-name {
+            font-size: 12px;
+            word-break: break-all;
+            line-height: 1.3;
+            margin-top: 5px;
+        }
+        /* --- END NEW STYLES --- */
+
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">🌊 WAVELINK</div>
+        <div class="user-menu">
+            <span class="user-name">👤 {{ session.full_name }}</span>
+            <button class="btn-logout" onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="page-header">
+            <h1>📜 Previous Feedbacks</h1>
+        </div>
+        
+        <div class="content-box">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <h2 style="color: #0a4d68; margin-bottom: 20px;">Your Feedback History</h2>
+            
+            {% if feedbacks %}
+                <ul class="feedback-list">
+                    {% for feedback in feedbacks %}
+                        <li class="feedback-item">
+                            <h3>{{ feedback.subject or 'No Subject' }}</h3>
+                            <p>{{ feedback.message }}</p>
+                            <div class="date">Submitted on: {{ feedback.submitted_at | format_datetime }}</div>
+                            
+                            <!-- --- NEW: Attachment Loop --- -->
+                            {% if feedback.attachments %}
+                                <div class="attachments-gallery">
+                                    {% for att in feedback.attachments %}
+                                        <a href="{{ att.file_url }}" target="_blank" class="attachment-item">
+                                            {% if att.file_type.startswith('image/') %}
+                                                <img src="{{ att.file_url }}" alt="Attachment">
+                                            {% elif att.file_type.startswith('video/') %}
+                                                <video src="{{ att.file_url }}" preload="metadata"></video>
+                                            {% else %}
+                                                <div class="attachment-file">
+                                                    <span class="attachment-file-icon">📄</span>
+                                                    <span class="attachment-file-name">{{ att.file_url.split('/')[-1] | truncate(20) }}</span>
+                                                </div>
+                                            {% endif %}
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <!-- --- END Attachment Loop --- -->
+
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p style="color: #666; text-align: center; padding: 40px;">You have not submitted any feedback.</p>
+            {% endif %}
+
+            <a href="{{ url_for('passenger_dashboard') }}" style="display: block; text-align: center; margin-top: 20px; color: #088395; text-decoration: none; font-weight: 600;">&larr; Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -23,6 +23,9 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # Import blueprints
 from add_employee import add_employee_bp
 app.register_blueprint(add_employee_bp)
+from passengers import passenger_bp
+app.register_blueprint(passenger_bp, url_prefix='/passenger')
+
 
 # ---------------------------------
 # Root route
@@ -188,6 +191,18 @@ def profile():
     except Exception as e:
         flash(f'Error loading profile: {str(e)}', 'error')
         return redirect(url_for('index'))
+
+@app.template_filter('format_datetime')
+def format_datetime(value, format='%Y-%m-%d %H:%M'):
+    if value is None:
+        return ""
+    # Assuming value is an ISO 8601 string with timezone
+    try:
+        from dateutil import parser
+        dt = parser.parse(value)
+        return dt.strftime(format)
+    except:
+        return value
 
 
 if __name__ == '__main__':
