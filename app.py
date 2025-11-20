@@ -1,9 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, Response
 from supabase import create_client, Client
 from datetime import timedelta
 from dotenv import load_dotenv
-import os
+import os, uuid, json
 from werkzeug.security import generate_password_hash, check_password_hash
+from dateutil import parser
+import re
 
 # Import the new decorator
 from decorators import login_required
@@ -23,9 +25,12 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # Import blueprints
 from add_employee import add_employee_bp
 app.register_blueprint(add_employee_bp)
+
 from passengers import passenger_bp
 app.register_blueprint(passenger_bp, url_prefix='/passenger')
 
+from employee_features import employee_bp
+app.register_blueprint(employee_bp, url_prefix='/employee')
 
 # ---------------------------------
 # Root route
@@ -41,8 +46,24 @@ def index():
         elif role == 'passenger':
             return redirect(url_for('passenger_dashboard'))
     # If not logged in, or no role, show landing
-    return render_template('landing.html') # Assuming you have a landing.html
+    return render_template('landing.html') 
 
+@app.route('/api/live_map_data')
+def live_map_data():
+    # Fetch active terminals with coordinates
+    terminals_data = supabase.table("terminals").select("*").eq("is_active", True).execute()
+    terminals = terminals_data.data
+
+    # If you have routes table, add this too
+    routes_data = supabase.table("routes").select("*").execute()
+    routes = routes_data.data
+
+    return jsonify({"terminals": terminals, "routes": routes})
+
+
+@app.route('/live_map')
+def live_map():
+    return render_template("live_map.html")
 
 # ---------------------------------
 # Passenger registration
@@ -66,14 +87,14 @@ def register():
             flash("Email already registered!", "error")
             return redirect(url_for("register"))
 
-        # --- FIX: Hash the password ---
+        # Hash the password
         hashed_password = generate_password_hash(password)
 
         data = {
             "full_name": full_name,
             "email": email,
             "phone": phone,
-            "password": hashed_password, # Store the hash, not the plain text
+            "password": hashed_password, 
             "role": "passenger"
         }
 
@@ -108,7 +129,7 @@ def login():
 
         user = result.data[0]
 
-        # --- FIX: Check the hashed password ---
+        # Check the hashed password
         if user.get('password') and check_password_hash(user['password'], password):
             session.permanent = True
             session['user_id'] = user['id']
@@ -139,6 +160,100 @@ def logout():
     flash('You have been logged out successfully', 'success')
     return redirect(url_for('index'))
 
+# ---------------------------------
+# PROFILE ROUTES (Consolidated Here)
+# ---------------------------------
+@app.route('/profile')
+@login_required(role='any') 
+def profile():
+    try:
+        user_id = session.get('user_id')
+        
+        # Fetch fresh user data from Supabase 'users' table
+        response = supabase.table('users').select('*').eq('id', user_id).single().execute()
+        user_data = response.data
+        
+        return render_template('profile.html', user=user_data)
+    except Exception as e:
+        flash(f"Error loading profile: {e}", "error")
+        return redirect(url_for('index'))
+
+@app.route('/update_profile', methods=['POST'])
+@login_required(role='any')
+def update_profile():
+    try:
+        user_id = session.get('user_id')
+        full_name = request.form.get('full_name')
+        phone = request.form.get('phone')
+        
+        # Update 'users' table
+        data = {"full_name": full_name, "phone": phone}
+        supabase.table('users').update(data).eq('id', user_id).execute()
+        
+        # Update session data to reflect changes immediately
+        session['full_name'] = full_name
+        
+        flash("Profile updated successfully!", "success")
+    except Exception as e:
+        flash(f"Error updating profile: {e}", "error")
+        
+    return redirect(url_for('profile'))
+
+@app.route('/change_password', methods=['POST'])
+@login_required(role='any')
+def change_password():
+    try:
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        
+        if new_password != confirm_password:
+            flash("Passwords do not match.", "error")
+            return redirect(url_for('profile'))
+            
+        if len(new_password) < 6:
+            flash("Password must be at least 6 characters.", "error")
+            return redirect(url_for('profile'))
+
+        # Update password in Supabase Auth
+        # Note: This requires service_role key if modifying auth.users directly, 
+        # but here we might be assuming a custom user table or admin rights.
+        attributes = {"password": new_password}
+        try:
+            supabase.auth.admin.update_user_by_id(session.get('user_id'), attributes)
+            flash("Password changed successfully.", "success")
+        except:
+            # If not using Supabase Auth, update your local users table hash
+            hashed = generate_password_hash(new_password)
+            supabase.table('users').update({'password': hashed}).eq('id', session.get('user_id')).execute()
+            flash("Password changed successfully.", "success")
+
+    except Exception as e:
+        flash(f"Error changing password: {e}", "error")
+        
+    return redirect(url_for('profile'))
+
+@app.route('/download_data')
+@login_required(role='any')
+def download_data():
+    try:
+        user_id = session.get('user_id')
+        
+        # Fetch all user data
+        user_res = supabase.table('users').select('*').eq('id', user_id).single().execute()
+        user_data = user_res.data
+        
+        # Convert to JSON string
+        json_str = json.dumps(user_data, indent=4, default=str)
+        
+        # Create file download response
+        return Response(
+            json_str,
+            mimetype="application/json",
+            headers={"Content-disposition": "attachment; filename=my_wavelink_data.json"}
+        )
+    except Exception as e:
+        flash(f"Error downloading data: {e}", "error")
+        return redirect(url_for('profile'))
 
 # ---------------------------------
 # Dashboards
@@ -176,21 +291,7 @@ def employee_dashboard():
 def passenger_dashboard():
     return render_template('passenger_dashboard.html')
 
-
-@app.route('/profile')
-@login_required()
-def profile():
-    user_id = session.get('user_id')
-    try:
-        data = supabase.table('users').select('*').eq('id', user_id).single().execute()
-        if data.data:
-            return render_template('profile.html', user=data.data)
-        else:
-            flash('User not found', 'error')
-            return redirect(url_for('index'))
-    except Exception as e:
-        flash(f'Error loading profile: {str(e)}', 'error')
-        return redirect(url_for('index'))
+# --- REMOVED THE DUPLICATE PROFILE ROUTE THAT WAS HERE ---
 
 @app.template_filter('format_datetime')
 def format_datetime(value, format='%Y-%m-%d %H:%M'):
@@ -198,7 +299,6 @@ def format_datetime(value, format='%Y-%m-%d %H:%M'):
         return ""
     # Assuming value is an ISO 8601 string with timezone
     try:
-        from dateutil import parser
         dt = parser.parse(value)
         return dt.strftime(format)
     except:

@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Local style for the spinner specifically for this page */
+    .loading-spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #088395;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+        display: none; /* Hidden by default */
+        margin-left: 10px;
+        vertical-align: middle;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
+
+<div class="top-bar">
+    <h1>Upload Certificate</h1>
+    <p style="color: #666;">Submit official documents for verification.</p>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="content-section">
+    <div class="section-header">
+        <h2>Document Details</h2>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" action="{{ url_for('employee_bp.upload_certificate') }}">
+        
+        <div class="form-group">
+            <label class="form-label">Attach Certificate (PDF)</label>
+            <div class="file-drop-area" onclick="document.getElementById('attachments').click()">
+                <span style="font-size: 24px;">📄</span>
+                <p style="margin-top: 10px; color: #666;">Click to select PDF</p>
+                <p style="font-size: 12px; color: #999;">(Selecting a file will autofill the details below)</p>
+                
+                <input type="file" id="attachments" name="attachments" accept=".pdf" required style="display: none;" onchange="autofillFields(this.files)">
+                
+                <div id="file-status" style="margin-top: 10px; font-weight: bold; color: #088395; display: flex; justify-content: center; align-items: center;">
+                    <span id="filename-display"></span>
+                    <div id="spinner" class="loading-spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="certificate_name" class="form-label">Certificate Name</label>
+            <input type="text" id="certificate_name" name="certificate_name" class="form-control"
+                   value="{{ initial_name or '' }}" placeholder="Auto-filled from filename" required>
+        </div>
+
+        <div class="form-group">
+            <label for="expiry_date" class="form-label">Expiry Date</label>
+            <input type="date" id="expiry_date" name="expiry_date" class="form-control"
+                   value="{{ initial_expiry_date or '' }}">
+            <small style="color: #888; font-size: 12px;">Auto-filled from PDF metadata (if available)</small>
+        </div>
+
+        <div class="form-group">
+            <label for="certificate_type" class="form-label">Certificate Type</label>
+            <select id="certificate_type" name="certificate_type" class="form-control" required>
+                <option value="" disabled selected>Select a Type</option>
+                <option value="Safety">Safety</option>
+                <option value="Technical">Technical</option>
+                <option value="Medical">Medical</option>
+                <option value="License">License</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <div style="margin-top: 30px; text-align: right;">
+            <a href="{{ url_for('employee_bp.employee_dashboard') }}" class="btn-secondary">Cancel</a>
+            <button type="submit" class="btn-primary">Submit for Verification</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function autofillFields(files) {
+        const file = files[0];
+        const display = document.getElementById('filename-display');
+        const spinner = document.getElementById('spinner');
+
+        if (!file) return;
+
+        // Show filename immediately
+        display.innerText = "Selected: " + file.name;
+
+        if (file.type !== 'application/pdf') {
+            alert("Please select a PDF file.");
+            return;
+        }
+
+        // Prepare FormData for AJAX
+        const formData = new FormData();
+        formData.append('file_for_analysis', file); 
+
+        // Show Spinner
+        spinner.style.display = 'inline-block';
+        
+        // Send to Backend
+        fetch("{{ url_for('employee_bp.upload_certificate') }}", {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Analysis failed');
+            return response.json();
+        })
+        .then(data => {
+            // Autofill Inputs
+            document.getElementById('certificate_name').value = data.certificate_name || '';
+            document.getElementById('expiry_date').value = data.expiry_date || '';
+            
+            if (data.expiry_date) {
+                display.innerText += " (Data Extracted ✓)";
+            } else {
+                display.innerText += " (Name Extracted ✓)";
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            display.innerText += " (Auto-fill failed)";
+        })
+        .finally(() => {
+            // Hide Spinner
+            spinner.style.display = 'none';
+        });
+    }
+</script>
+{% endblock %}

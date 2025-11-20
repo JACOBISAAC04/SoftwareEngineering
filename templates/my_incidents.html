@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .task-list { list-style: none; }
+    .task-item { padding: 20px; background: #f8f9fa; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #088395; transition: transform 0.2s; }
+    .task-item:hover { transform: translateX(5px); background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    
+    .task-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .task-title { font-weight: 600; color: #333; font-size: 18px; }
+    .task-meta { font-size: 13px; color: #666; margin-bottom: 10px; }
+    
+    .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-investigation { background: #e2e3e5; color: #383d41; }
+    .status-closed { background: #d4edda; color: #155724; }
+    
+    .narrative-box { background: white; padding: 15px; border-radius: 6px; border: 1px solid #eee; font-size: 14px; line-height: 1.6; color: #444; white-space: pre-wrap; }
+    .narrative-box a { color: #088395; font-weight: bold; text-decoration: none; }
+    .narrative-box a:hover { text-decoration: underline; }
+</style>
+
+<div class="top-bar">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1>Incident History</h1>
+            <p style="color: #666;">Track status of your reported issues.</p>
+        </div>
+        <a href="{{ url_for('employee_bp.report_incident') }}" class="btn-primary">+ New Report</a>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="content-section">
+    <div class="section-header">
+        <h2>Past Reports</h2>
+    </div>
+
+    {% if incidents %}
+        <ul class="task-list">
+            {% for incident in incidents %}
+            <li class="task-item">
+                <div class="task-header">
+                    <div class="task-title">{{ incident.subject }}</div>
+                    <span class="status-badge status-{{ incident.status }}">{{ incident.status }}</span>
+                </div>
+                
+                <div class="task-meta">
+                    📅 {{ incident.accident_time | datetime_format }} &nbsp;|&nbsp; 
+                    📍 Terminal ID: {{ incident.terminal_id if incident.terminal_id else 'N/A' }} &nbsp;|&nbsp;
+                    ⚠️ Severity: {{ incident.severity }}
+                </div>
+                
+                <div class="narrative-box narrative-content">
+                    {{ incident.narrative }}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div style="text-align: center; padding: 40px; color: #888;">
+            <p>No incidents found in your history.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const narratives = document.querySelectorAll('.narrative-content');
+        const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+
+        narratives.forEach(div => {
+            let html = div.innerHTML;
+            // Convert URLs to clickable links
+            html = html.replace(urlRegex, function(url) {
+                return `<a href="${url}" target="_blank">📄 View Attachment</a>`;
+            });
+            div.innerHTML = html;
+        });
+    });
+</script>
+{% endblock %}

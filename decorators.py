@@ -11,6 +11,8 @@ def login_required(role=None):
             if 'user_id' not in session:
                 flash('Please login to access this page', 'error')
                 return redirect(url_for('login'))
+            if role == 'any':
+                return f(*args, **kwargs)
             if role and session.get('role') != role:
                 flash('Unauthorized access. You do not have permission to view this page.', 'error')
                 # Redirect to their own dashboard or index

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="top-bar">
+    <h1>Report Incident</h1>
+    <p style="color: #666;">Submit details about safety issues or accidents.</p>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="content-section">
+    <div class="section-header">
+        <h2>Incident Details</h2>
+    </div>
+
+    <form action="{{ url_for('employee_bp.report_incident') }}" method="POST" enctype="multipart/form-data">
+        
+        <div class="form-group">
+            <label for="subject" class="form-label">Subject / Title</label>
+            <input type="text" name="subject" id="subject" class="form-control" placeholder="e.g., Collision at Dock 4" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            
+            <div class="form-group">
+                <label for="accident_time" class="form-label">Time of Incident</label>
+                <input type="datetime-local" name="accident_time" id="accident_time" class="form-control" required>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label for="severity" class="form-label">Severity</label>
+                <select name="severity" id="severity" class="form-control" required>
+                    <option value="" disabled selected>Select Severity</option>
+                    <option value="low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="involved_party" class="form-label">Involved Party</label>
+                <select name="involved_party" id="involved_party" class="form-control" required>
+                    <option value="" disabled selected>Select Party</option>
+                    <option value="employee">Employee</option>
+                    <option value="passenger">Passenger</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="description" class="form-label">Detailed Narrative</label>
+            <textarea name="description" id="description" rows="6" class="form-control" placeholder="Describe exactly what happened..." required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Attachments (PDF/Images)</label>
+            <div class="file-drop-area" onclick="document.getElementById('attachments').click()">
+                <span style="font-size: 24px;">📎</span>
+                <p style="margin-top: 10px; color: #666;">Click here to select files</p>
+                <input type="file" name="attachments" id="attachments" style="display: none;" onchange="showFileNames(this)">
+                <div id="file-list" style="margin-top: 10px; font-weight: bold; color: #088395;"></div>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; text-align: right;">
+            <a href="{{ url_for('employee_bp.employee_dashboard') }}" class="btn-secondary">Cancel</a>
+            <button type="submit" class="btn-primary">Submit Report</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function showFileNames(input) {
+        const output = document.getElementById('file-list');
+        if (input.files.length > 0) {
+            let names = Array.from(input.files).map(f => f.name).join(', ');
+            output.innerText = "Selected: " + names;
+        } else {
+            output.innerText = "";
+        }
+    }
+</script>
+{% endblock %}

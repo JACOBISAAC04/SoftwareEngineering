@@ -189,9 +189,8 @@ def give_feedback():
                         # Create a unique file path
                         file_ext = os.path.splitext(file.filename)[1]
                         file_name = f"{user_id}/{feedback_id}_{uuid.uuid4()}{file_ext}"
-                        
-                        # Upload to Supabase Storage (bucket 'pdfs')
-                        supabase.storage.from_('pdfs').upload(file_name, file.read())
+                        content_type = file.mimetype
+                        supabase.storage.from_('pdfs').upload(file_name, file.read(),{"content-type": content_type})
                         
                         # Get public URL
                         public_url = supabase.storage.from_('pdfs').get_public_url(file_name)
@@ -266,8 +265,8 @@ def give_complaint():
                     if file.filename:
                         file_ext = os.path.splitext(file.filename)[1]
                         file_name = f"{user_id}/complaint_{complaint_id}_{uuid.uuid4()}{file_ext}"
-                        
-                        supabase.storage.from_('pdfs').upload(file_name, file.read())
+                        contentt_type = file.mimetype
+                        supabase.storage.from_('pdfs').upload(file_name, file.read(),{"content-type": contentt_type})
                         public_url = supabase.storage.from_('pdfs').get_public_url(file_name)
                         
                         attachment_entries.append({

@@ -144,6 +144,7 @@
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s;
+            text-decoration: none;
         }
         
         .btn:hover {
@@ -165,6 +166,7 @@
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
+            text-decoration: none;
         }
         
         .action-card:hover {
@@ -175,6 +177,7 @@
         .action-card .icon {
             font-size: 40px;
             margin-bottom: 10px;
+            color: #088395;
         }
         
         .action-card h3 {
@@ -233,36 +236,60 @@
                 <p>Employee Portal</p>
             </div>
             
+            <!-- --- NEW: ROLE-AWARE SIDEBAR --- -->
             <nav class="nav-menu">
-                <a href="{{ url_for('employee_dashboard') }}" class="nav-item active">
+                <a href="{{ url_for('employee_bp.employee_dashboard') }}" class="nav-item active">
                     <span>📊</span>
                     <span>Dashboard</span>
                 </a>
-                <a href="#" class="nav-item">
+                
+                <!-- Common Links -->
+                <a href="{{ url_for('employee_bp.report_incident') }}" class="nav-item">
                     <span>📝</span>
                     <span>Report Incident</span>
                 </a>
-                <a href="#" class="nav-item">
-                    <span>🔧</span>
-                    <span>Maintenance Log</span>
-                </a>
-                <a href="#" class="nav-item">
+                <a href="{{ url_for('employee_bp.upload_certificate') }}" class="nav-item">
                     <span>📄</span>
-                    <span>My Certificates</span>
-                </a>
-                <a href="#" class="nav-item">
-                    <span>📋</span>
-                    <span>Tasks</span>
+                    <span>Upload Certificate</span>
                 </a>
                 <a href="#" class="nav-item">
                     <span>🚨</span>
-                    <span>Emergency Alert</span>
+                    <span>Trigger Emergency</span>
+                </a>
+
+                <!-- Role-Specific Links -->
+                {% if category == 'technical' %}
+                    <a href="#" class="nav-item">
+                        <span>🔧</span>
+                        <span>Maintenance Log</span>
+                    </a>
+                {% elif category == 'finance' %}
+                    <a href="#" class="nav-item">
+                        <span>💰</span>
+                        <span>Billing Reports</span>
+                    </a>
+                {% elif category == 'boat_driver' %}
+                    <a href="#" class="nav-item">
+                        <span>🛥️</span>
+                        <span>Journey Log</span>
+                    </a>
+                {% endif %}
+
+                <!-- Common History Links -->
+                 <a href="{{ url_for('employee_bp.my_incidents') }}" class="nav-item">
+                    <span>📋</span>
+                    <span>My Incidents</span>
+                </a>
+                 <a href="{{ url_for('employee_bp.my_certificates') }}" class="nav-item">
+                    <span>📜</span>
+                    <span>My Certificates</span>
                 </a>
                 <a href="{{ url_for('profile') }}" class="nav-item">
                     <span>👤</span>
                     <span>Profile</span>
                 </a>
             </nav>
+            <!-- --- END ROLE-AWARE SIDEBAR --- -->
             
             <div class="logout-btn" onclick="window.location.href='{{ url_for('logout') }}'">
                 🚪 Logout
@@ -270,6 +297,17 @@
         </aside>
         
         <main class="main-content">
+            <!-- Flash Message Container -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}" style="padding: 15px; margin-bottom: 20px; border-radius: 8px; background: {% if category == 'success' %}#d4edda{% else %}#f8d7da{% endif %}; color: {% if category == 'success' %}#155724{% else %}#721c24{% endif %};">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
             <div class="top-bar">
                 <h1>Welcome, {{ session.full_name }}!</h1>
                 <div class="category-badge">
@@ -287,38 +325,57 @@
                 </div>
             </div>
             
+            <!-- --- NEW: ROLE-AWARE QUICK ACTIONS --- -->
             <div class="content-section">
                 <div class="section-header">
                     <h2>Quick Actions</h2>
                 </div>
                 
                 <div class="quick-actions">
-                    <div class="action-card">
+                    <!-- Common Actions -->
+                    <a href="{{ url_for('employee_bp.report_incident') }}" class="action-card">
                         <div class="icon">📝</div>
                         <h3>Report Incident</h3>
-                    </div>
-                    
-                    <div class="action-card">
-                        <div class="icon">🔧</div>
-                        <h3>Log Maintenance</h3>
-                    </div>
-                    
-                    <div class="action-card">
+                    </a>
+                    <a href="{{ url_for('employee_bp.upload_certificate') }}" class="action-card">
                         <div class="icon">📄</div>
                         <h3>Upload Certificate</h3>
-                    </div>
-                    
-                    <div class="action-card">
-                        <div class="icon">🚨</div>
-                        <h3>Trigger Emergency</h3>
-                    </div>
+                    </a>
+                    <a href="#" class="action-card" style="border-color: #d9534f; background: linear-gradient(135deg, rgba(217, 83, 79, 0.05), rgba(217, 83, 79, 0.1));">
+                        <div class="icon" style="color: #d9534f;">🚨</div>
+                        <h3 style="color: #d9534f;">Trigger Emergency</h3>
+                    </a>
+
+                    <!-- Role-Specific Actions -->
+                    {% if category == 'technical' %}
+                        <a href="#" class="action-card">
+                            <div class="icon">🔧</div>
+                            <h3>Log Maintenance</h3>
+                        </a>
+                    {% elif category == 'finance' %}
+                        <a href="#" class="action-card">
+                            <div class="icon">💰</div>
+                            <h3>Upload Bill</h3>
+                        </a>
+                    {% elif category == 'boat_driver' %}
+                        <a href="#" class="action-card">
+                            <div class="icon">🛥️</div>
+                            <h3>Start Journey Log</h3>
+                        </a>
+                    {% elif category == 'non_technical' %}
+                        <a href="#" class="action-card">
+                            <div class="icon">🗣️</div>
+                            <h3>Passenger Support</h3>
+                        </a>
+                    {% endif %}
                 </div>
             </div>
+            <!-- --- END ROLE-AWARE QUICK ACTIONS --- -->
             
             <div class="content-section">
                 <div class="section-header">
                     <h2>My Tasks</h2>
-                    <button class="btn">View All</button>
+                    <a href="#" class="btn">View All</a>
                 </div>
                 
                 <ul class="task-list">

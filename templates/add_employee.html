@@ -1,107 +1,92 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Add Employee - WAVELINK</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f5f7fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0; /* Added to ensure no default margin */
-        }
-        form {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px; /* Added for better responsiveness */
-        }
-        h2 {
-            color: #0a4d68;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        input, select, button {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-sizing: border-box; /* Added for consistent sizing */
-        }
-        button {
-            background: linear-gradient(135deg, #0a4d68, #088395);
-            color: white;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(8, 131, 149, 0.3);
-        }
-        /* Added styles for the cancel button */
-        button[type="button"] {
-            background: #f0f0f0;
-            color: #333;
-            border: 1px solid #ccc;
-        }
-        button[type="button"]:hover {
-            background: #e0e0e0;
-            transform: none;
-            box-shadow: none;
-        }
-        .flash {
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-        .flash.error { background: #f8d7da; color: #721c24; }
-        .flash.success { background: #d4edda; color: #155724; }
-    </style>
-</head>
-<body>
-    <form method="POST">
-        <h2>Add Employee</h2>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="flash {{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+{% extends "base.html" %}
 
-        <input type="text" name="full_name" placeholder="Full Name" required>
-        <input type="email" name="email" placeholder="Email" required>
-        <input type="tel" name="phone" placeholder="Phone" required>
-        <input type="password" name="password" placeholder="Password" required>
-        <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+{% block content %}
+<div class="top-bar">
+    <h1>Add New Employee</h1>
+    <p style="color: #666;">Register a new staff member to the system.</p>
+</div>
 
-        <!-- --- FIX: Update options to match database constraint --- -->
-        <select name="employee_category" required>
-            <option value="">Select Category</option>
-            <option value="technical">Technical</option>
-            <option value="non_technical">Non-Technical</option>
-            <option value="finance">Finance</option>
-            <option value="boat_driver">Boat Driver</option>
-        </select>
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
 
-        <!-- --- MODIFIED: Changed text input to select dropdown --- -->
-        <select name="terminal_id">
-            <option value="">Select Terminal (Optional)</option>
-            {% for terminal in terminals %}
-                <option value="{{ terminal.id }}">{{ terminal.name }}</option>
-            {% endfor %}
-        </select>
+<div class="content-section" style="max-width: 800px; margin: 0 auto;">
+    <div class="section-header">
+        <h2>Employee Details</h2>
+    </div>
+
+    <form method="POST" action="{{ url_for('add_employee_bp.add_employee_form') }}">
         
-        <button type="submit">Add Employee</button>
-        <button type="button" onclick="window.location.href='{{ url_for('admin_dashboard') }}'">Cancel</button>
+        <!-- Personal Info Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" name="full_name" class="form-control" placeholder="e.g., John Smith" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" class="form-control" placeholder="john@wavelink.com" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" name="phone" class="form-control" placeholder="+1 234 567 8900" required>
+        </div>
+
+        <!-- Role & Location Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Job Category</label>
+                <select name="employee_category" class="form-control" required>
+                    <option value="" disabled selected>Select Category</option>
+                    <option value="technical">🔧 Technical Staff</option>
+                    <option value="non_technical">📋 Non-Technical Staff</option>
+                    <option value="finance">💰 Finance Staff</option>
+                    <option value="boat_driver">⛴️ Boat Driver/Crew</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Assigned Terminal (Optional)</label>
+                <select name="terminal_id" class="form-control">
+                    <option value="">-- No Specific Terminal --</option>
+                    {% for terminal in terminals %}
+                        <option value="{{ terminal.id }}">{{ terminal.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+        <!-- Security Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Confirm Password</label>
+                <input type="password" name="confirm_password" class="form-control" required>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div style="margin-top: 30px; text-align: right;">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn-secondary">Cancel</a>
+            <button type="submit" class="btn-primary">Create Employee Account</button>
+        </div>
+
     </form>
-</body>
-</html>
+</div>
+{% endblock %}
